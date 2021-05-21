@@ -2,13 +2,15 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class Cart(db.Model):
-    __tablename__ = 'cart_items'
+    __tablename__ = 'cart'
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user_id"))
     order_id = db.Column(db.Integer, db.ForeignKey("order_id"))
     product_id = db.Column(db.Integer, db.ForeignKey("product_id"))
     is_ordered = db.Column(db.Boolean)
+
+    products = db.relationship("Product", backref="product")
 
     def cart_payload(self):
         return {
@@ -24,6 +26,8 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user_id"))
     total = db.Column(db.Integer)
+
+    cart = db.relationship("Cart", backref="cart")
 
     def order_payload(self):
         return {
@@ -66,6 +70,9 @@ class User(db.Model):
     zipcode = db.Column(db.String)
     current = db.Column(db.Integer)
     lifetime = db.Column(db.Integer)
+
+    orders = db.relationship("Order", backref="order")
+    cart = db.relationship("Cart", backref="cart")
 
     def user_info_payload(self):
         return {

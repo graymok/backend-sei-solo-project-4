@@ -1,4 +1,4 @@
-"""create-cart_items
+"""create-cart
 
 Revision ID: 46b7ebc95db0
 Revises: d61a4280502f
@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade():
     op.create_table(
-        'cart_items',
+        'cart',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('user_id', sa.Integer),
         sa.Column('order_id', sa.Integer),
@@ -28,4 +28,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table('cart_items')
+    op.drop_table('cart')
