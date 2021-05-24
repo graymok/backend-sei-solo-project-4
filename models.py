@@ -5,9 +5,9 @@ class Cart(db.Model):
     __tablename__ = 'cart'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user_id"))
-    order_id = db.Column(db.Integer, db.ForeignKey("order_id"))
-    product_id = db.Column(db.Integer, db.ForeignKey("product_id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"))
     is_ordered = db.Column(db.Boolean)
 
     products = db.relationship("Product", backref="product")
@@ -24,7 +24,7 @@ class Order(db.Model):
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user_id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     total = db.Column(db.Integer)
 
     cart = db.relationship("Cart", backref="cart")
@@ -72,7 +72,7 @@ class User(db.Model):
     lifetime = db.Column(db.Integer)
 
     orders = db.relationship("Order", backref="order")
-    cart = db.relationship("Cart", backref="cart")
+    cart = db.relationship("Cart")
 
     def user_info_payload(self):
         return {

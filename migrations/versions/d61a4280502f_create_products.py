@@ -22,8 +22,8 @@ def upgrade():
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('name', sa.String),
         sa.Column('description', sa.String),
-        sa.Column('image', sa.Integer),
-        sa.Column('price', sa.String),
+        sa.Column('image', sa.String),
+        sa.Column('price', sa.Integer),
         sa.Column('type', sa.String),
         sa.Column('force', sa.String),                         
     )
