@@ -100,7 +100,7 @@ def seed():
 app.route('/seed', methods=["GET"])(seed)
 
 
-# Register new user, login existing user, verify current user
+# Register new user
 def create_user():
     hashed_pw = bcrypt.generate_password_hash(request.json["password"]).decode("UTF-8")
     user = models.User(
@@ -120,6 +120,8 @@ def create_user():
     }
 app.route('/users/register', methods=["POST"])(create_user)
 
+
+# Login existing user
 def login_user():
     user = models.User.query.filter_by(email = request.json['email']).first()
     if not user:
@@ -138,6 +140,8 @@ def login_user():
         return { "message": "Password is incorrect" }, 401
 app.route('/users/login', methods={"POST"})(login_user)
 
+
+# Verify existing user
 def verify_user():
     decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
     user = models.User.query.filter_by(id = decrypted_id).first()
