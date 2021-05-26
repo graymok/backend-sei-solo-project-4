@@ -7,7 +7,7 @@ import sqlalchemy
 app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('postgres','postgresql')
 import models
 models.db.init_app(app)
 
