@@ -122,7 +122,6 @@ def create_user():
     }
 app.route('/users/register', methods=["POST"])(create_user)
 
-
 # Login existing user
 def login_user():
     user = models.User.query.filter_by(email = request.json['email']).first()
@@ -142,7 +141,6 @@ def login_user():
         return { "message": "Password is incorrect" }, 401
 app.route('/users/login', methods={"POST"})(login_user)
 
-
 # Verify existing user
 def verify_user():
     decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
@@ -159,43 +157,60 @@ def verify_user():
     }
 app.route('/users/verify', methods=["GET"])(verify_user)
 
+# Update existing user
+def update_user():
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404    
 
-# Retrieve products as single, all, force side, and type
+    user.name = request.json["name"]
+    user.email = request.json["email"]
+
+    models.db.session.add(user)
+    models.db.session.commit()
+
+    return {
+        "message": "User updated successfully",
+        "user": user.user_info_payload()
+    }
+app.route('/users/update', methods=["PUT"])(update_user)
+
+
+# Retrieve specific product
 def get_one_product(id):
     product = models.Product.query.filter_by( id = id ).first()
 
     return { "product": product.product_payload() }
 app.route('/products/<int:id>', methods=["GET"])(get_one_product)
 
-def get_all_products():
-    products = models.Product.query.all()
+# Retrieve all single crystals with light side affinity
+def get_all_single_light():
+    single_light = models.Product.query.filter_by( force = "light", type = "single" ).all()
 
-    return { "products": [p.product_payload() for p in products] }
-app.route('/products', methods=["GET"])(get_all_products)
+    return { "products": [s.product_payload() for s in single_light] }
+app.route('/single/light', methods=["GET"])(get_all_single_light)
 
-def get_all_light():
-    light_side = models.Product.query.filter_by( force = "light" ).all()
+# Retrieve all single crystals with dark side affinity
+def get_all_single_dark():
+    single_dark = models.Product.query.filter_by( force = "dark", type = "single" ).all()
 
-    return { "products": [l.product_payload() for l in light_side] }
-app.route('/products/light', methods=["GET"])(get_all_light)
+    return { "products": [s.product_payload() for s in single_dark] }
+app.route('/single/dark', methods=["GET"])(get_all_single_dark)
 
-def get_all_dark():
-    dark_side = models.Product.query.filter_by( force = "dark" ).all()
+# Retrieve all double crystals with light side affinity
+def get_all_double_light():
+    double_light = models.Product.query.filter_by( force = "light", type = "double" ).all()
 
-    return { "products": [d.product_payload() for d in dark_side] }
-app.route('/products/dark', methods=["GET"])(get_all_dark)
+    return { "products": [s.product_payload() for s in double_light] }
+app.route('/double/light', methods=["GET"])(get_all_double_light)
 
-def get_all_single_type():
-    single_type = models.Product.query.filter_by( type = "single" ).all()
+# Retrieve all double crystals with dark side affinity
+def get_all_double_dark():
+    double_dark = models.Product.query.filter_by( force = "dark", type = "double" ).all()
 
-    return { "products": [t.product_payload() for t in single_type] }
-app.route('/products/single', methods=["GET"])(get_all_single_type)
-
-def get_all_double_type():
-    double_type = models.Product.query.filter_by( type = "double" ).all()
-
-    return { "products": [t.product_payload() for t in double_type] }
-app.route('/products/double', methods=["GET"])(get_all_double_type)
+    return { "products": [s.product_payload() for s in double_dark] }
+app.route('/double/dark', methods=["GET"])(get_all_double_dark)
 
 
 # Retrieve cart, add item to cart, delete item from cart
