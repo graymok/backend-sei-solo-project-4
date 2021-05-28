@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 db = SQLAlchemy()
 
 class Cart(db.Model):
@@ -9,6 +10,7 @@ class Cart(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"))
     is_ordered = db.Column(db.Boolean)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     products = db.relationship("Product", backref="product")
 
@@ -17,7 +19,13 @@ class Cart(db.Model):
             "id": self.id,
             "order_id": self.order_id,
             "product_id": self.product_id,
-            "is_ordered": self.is_ordered
+            "is_ordered": self.is_ordered,
+            "created_at": self.created_at
+        }
+    
+    def to_json(self):
+        return {
+            "created_at": self.created_at
         }
 
 class Order(db.Model):
@@ -56,6 +64,7 @@ class Product(db.Model):
             "type": self.type,
             "force": self.force
         }
+    
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -70,6 +79,7 @@ class User(db.Model):
     zipcode = db.Column(db.String)
     current = db.Column(db.Integer)
     lifetime = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     orders = db.relationship("Order", backref="order")
     cart = db.relationship("Cart")

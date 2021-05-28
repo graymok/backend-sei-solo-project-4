@@ -28,7 +28,8 @@ def upgrade():
         sa.Column('state', sa.String),
         sa.Column('zipcode', sa.String),        
         sa.Column('current', sa.Integer),
-        sa.Column('lifetime', sa.Integer),        
+        sa.Column('lifetime', sa.Integer),
+        sa.Column('created_at', sa.DateTime, server_default=sa.func.current_timestamp()),          
     )
 
 

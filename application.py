@@ -2,6 +2,7 @@ import os
 from flask import Flask, request
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from dateutil import parser
 import jwt
 import sqlalchemy
 from dotenv import load_dotenv
@@ -9,6 +10,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('postgres','postgresql')
 import models
 models.db.init_app(app)
@@ -215,16 +217,59 @@ app.route('/double/dark', methods=["GET"])(get_all_double_dark)
 
 # Retrieve cart, add item to cart, delete item from cart
 def get_cart():
-    pass
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404
+
+    cart_products = []
+
+    for item in user.cart:
+        cart_products.append({
+            "product": item.cart_payload(),
+            "product_info": models.Product.query.filter_by( id = item.product_id ).first().product_payload()
+        })
+
+    return {
+        "cart_products": cart_products
+    }
 app.route('/cart', methods=["GET"])(get_cart)
 
 def add_item_cart():
-    pass
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404
+
+    product = models.Product.query.filter_by( id = request.json["product_id"]).first()
+    if user and product:
+        cart = models.Cart(
+            user_id = user.id,
+            product_id = product.id,
+            is_ordered = False
+        )
+        models.db.session.add(cart)
+        models.db.session.commit()
+
+        return { "message": "added item" }
+
+
 app.route('/cart/add', methods=["POST"])(add_item_cart)
 
 def remove_item_cart():
-    pass
-app.route('/cart/remove', methods=["DELETE"])(remove_item_cart)
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404
+
+    cart_item = models.Cart.query.filter_by(id = request.json["cartId"]).first()
+    models.db.session.delete(cart_item)
+    models.db.session.commit()
+    return {
+        "message": "removed item"
+    }
+
+app.route('/cart/remove', methods=["POST"])(remove_item_cart)
 
 
 # Retrieve single order, retrieve all orders, create order
