@@ -279,11 +279,39 @@ app.route('/cart/remove', methods=["POST"])(remove_item_cart)
 
 # Retrieve single order, retrieve all orders, create order
 def get_single_order(id):
-    pass
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404
+
+    order_products = []
+
+    order = models.Order.query.filter_by( id = id).first()
+    cart = models.Cart.query.filter_by( user_id = user.id, order_id = order.id ).all()
+
+    for item in cart:
+        order_products.append({
+            "product": item.cart_payload(),
+            "product_info": models.Product.query.filter_by( id = item.product_id ).first().product_payload()
+        })
+
+    return {
+        "order_products": order_products,
+        "order": order.order_payload()
+    }
+
 app.route('/orders/<int:id>', methods=["GET"])(get_single_order)
 
 def get_all_orders():
-    pass
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404
+
+    return {
+        "orders": [item.order_payload() for item in user.orders]
+    }
+
 app.route('/orders', methods=["GET"])(get_all_orders)
 
 def create_order():
