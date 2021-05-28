@@ -224,7 +224,9 @@ def get_cart():
 
     cart_products = []
 
-    for item in user.cart:
+    cart = models.Cart.query.filter_by( user_id = user.id, is_ordered = False )
+
+    for item in cart:
         cart_products.append({
             "product": item.cart_payload(),
             "product_info": models.Product.query.filter_by( id = item.product_id ).first().product_payload()
@@ -282,7 +284,36 @@ def get_all_orders():
 app.route('/orders', methods=["GET"])(get_all_orders)
 
 def create_order():
-    pass
+    decrypted_id = jwt.decode(request.headers["Authorization"], os.environ.get('JWT_SECRET'), algorithms=["HS256"])["user_id"]
+    user = models.User.query.filter_by(id = decrypted_id).first()
+    if not user:
+        return { "message": "user not found"}, 404
+
+    order = models.Order(
+        user_id = user.id,
+        total = request.json["total"]
+    )
+    models.db.session.add(order)
+
+    user.address = request.json["address"]
+    user.city = request.json["city"]
+    user.state = request.json["state"]
+    user.zipcode = request.json["zipcode"]
+
+    cart_items = models.Cart.query.filter_by( user_id = user.id, is_ordered = False).all()
+
+    for item in cart_items:
+        item.order_id = order.id
+        item.is_ordered = True
+        models.db.session.add(item)
+
+
+    models.db.session.add(user)
+    models.db.session.commit()
+
+    return {
+        "message": "order created"
+    }
 app.route('/orders/new', methods=["POST"])(create_order)
 
 
