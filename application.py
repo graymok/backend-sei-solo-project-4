@@ -2,9 +2,7 @@ import os
 from flask import Flask, request
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-from dateutil import parser
 import jwt
-import sqlalchemy
 from dotenv import load_dotenv
 load_dotenv()
 app = Flask(__name__)

@@ -23,8 +23,7 @@ def upgrade():
         sa.Column('user_id', sa.Integer),
         sa.Column('order_id', sa.Integer),
         sa.Column('product_id', sa.Integer),
-        sa.Column('is_ordered', sa.Boolean),
-        sa.Column('created_at', sa.DateTime, server_default=sa.func.current_timestamp()),            
+        sa.Column('is_ordered', sa.Boolean),            
     )
 
 
