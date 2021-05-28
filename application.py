@@ -223,17 +223,20 @@ def get_cart():
         return { "message": "user not found"}, 404
 
     cart_products = []
+    cart_count = 0
 
-    cart = models.Cart.query.filter_by( user_id = user.id, is_ordered = False )
+    cart = models.Cart.query.filter_by( user_id = user.id, is_ordered = False ).all()
 
     for item in cart:
         cart_products.append({
             "product": item.cart_payload(),
             "product_info": models.Product.query.filter_by( id = item.product_id ).first().product_payload()
         })
+        cart_count += 1
 
     return {
-        "cart_products": cart_products
+        "cart_products": cart_products,
+        "cart_count": cart_count
     }
 app.route('/cart', methods=["GET"])(get_cart)
 
